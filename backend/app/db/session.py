@@ -1,17 +1,11 @@
-import os
-from pathlib import Path
-
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-
-BACKEND_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_DATABASE_PATH = BACKEND_DIR / "data" / "fireflies_clone.db"
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DATABASE_PATH.as_posix()}")
+from app.core.config import settings
 
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    settings.database_url,
+    connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {},
 )
 
 
