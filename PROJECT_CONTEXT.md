@@ -2,7 +2,7 @@
 
 ## 1. Project overview
 
-Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through the transcript display milestone.
+Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through the media player placeholder milestone.
 
 The codebase—not the original assignment description—is the source of truth. Media playback, transcript synchronization/search, summary UI, action-item UI, meeting CRUD UI, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
 
@@ -32,7 +32,8 @@ frontend/app/
     AppShell.tsx                   sidebar, header, workspace chrome
     MeetingFilters.tsx              search/filter/sort controls
     MeetingList.tsx                 linked meeting rows and empty state
-    MeetingDetail.tsx               meeting metadata and transcript section
+    MeetingDetail.tsx               meeting metadata, media player, and transcript section
+    MediaPlayer.tsx                 simulated meeting-duration-driven playback controls
     Transcript.tsx                  client-side transcript loading/display
   lib/
     meetings.ts                    meeting types and list API client
@@ -78,7 +79,11 @@ The root page (`/`) is a client component. It fetches the paginated meetings res
 
 ### Meeting Detail
 
-`frontend/app/meetings/[meetingId]/page.tsx` is the dynamic detail route. It server-fetches the meeting through `getMeeting`, displays the meeting title, date/time, duration, participants, and a back link, and provides route-level loading, error, and not-found states. The detail response contains only meeting metadata and participants; it does not include summary, topics, action items, or transcript content.
+`frontend/app/meetings/[meetingId]/page.tsx` is the dynamic detail route. It server-fetches the meeting through `getMeeting`, displays the meeting title, date/time, duration, participants, a back link, the media player, and the transcript section, and provides route-level loading, error, and not-found states. The detail response contains only meeting metadata and participants; it does not include summary, topics, action items, or transcript content.
+
+### Media Player Placeholder
+
+`MediaPlayer` is a reusable client component rendered on the detail page. It uses the meeting duration as its mock recording duration and simulates playback with a timer. It provides accessible play/pause controls, an interactive seek bar, and current/total `MM:SS` time. Playback automatically stops at the meeting duration. No real audio or video file is used, and transcript clicks do not control the player yet.
 
 ### Transcript display
 
@@ -129,17 +134,21 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 11A — Meeting Detail page
 - Phase 11B — Transcript display
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, and transcript display. Do not rewrite or reimplement those phases.
+- Phase 12 — Media Player Placeholder
+
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, and media player placeholder. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 11B is complete. The next implementation phase is Phase 12 — Summary & Action Items frontend UI.**
+Current status: **Phase 12 is complete. The next implementation phase is Phase 13 — Transcript ↔ Player Synchronization.**
+
+Phase 12 was manually tested. Frontend lint (`npm.cmd run lint`) and the production build (`npm.cmd run build`) both passed.
 
 Remaining work, in likely order:
 
-- Phase 12: fetch and present summary/topics and action items in the meeting detail experience;
-- media-player placeholder and transcript/media synchronization;
+- Phase 13: transcript ↔ player synchronization, allowing transcript interactions to control player position;
 - transcript search and matching-text highlighting;
+- fetch and present summary/topics and action items in the meeting detail experience;
 - meeting CRUD UI, forms/modals/toasts;
 - frontend polish and any additional responsive/accessibility improvements;
 - final documentation, testing, and deployment.
@@ -168,7 +177,7 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue at Phase 12: add the frontend summary/topics and action-item experience using the existing backend endpoints, existing App Router/detail structure, and existing CSS/module conventions. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Do not implement unrelated later phases in the same task unless explicitly requested. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue at Phase 13: connect transcript interactions to the existing reusable `MediaPlayer` so they can seek its simulated position. Preserve the current separation: the player owns simulated playback state, and no real media integration exists. Do not add transcript search or Summary/Action Items UI unless explicitly requested. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 

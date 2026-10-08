@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Meeting } from "../lib/meetings";
 import { formatDuration, formatMeetingDate } from "../lib/meetingFormatters";
+import { MediaPlayer } from "./MediaPlayer";
 import styles from "./MeetingDetail.module.css";
 import { Transcript } from "./Transcript";
 
@@ -30,6 +31,7 @@ export function MeetingDetail({ meeting }: MeetingDetailProps) {
           <dd>{meeting.participants.map((participant) => participant.name).join(", ")}</dd>
         </div>
       </dl>
+      <MediaPlayer durationSeconds={meeting.duration_seconds} />
       <Transcript meetingId={meeting.id} />
     </section>
   );
