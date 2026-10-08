@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { formatTimestamp } from "../lib/meetingFormatters";
 import styles from "./MediaPlayer.module.css";
 
 type MediaPlayerProps = {
+  currentTime: number;
   durationSeconds: number;
+  isPlaying: boolean;
+  onPlayingChange: (isPlaying: boolean) => void;
+  onTimeChange: (time: number) => void;
 };
 
 function PlayIcon({ isPlaying }: { isPlaying: boolean }) {
@@ -20,38 +24,41 @@ function PlayIcon({ isPlaying }: { isPlaying: boolean }) {
   );
 }
 
-export function MediaPlayer({ durationSeconds }: MediaPlayerProps) {
+export function MediaPlayer({
+  currentTime,
+  durationSeconds,
+  isPlaying,
+  onPlayingChange,
+  onTimeChange,
+}: MediaPlayerProps) {
   const duration = Math.max(0, Math.floor(durationSeconds));
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const progress = duration === 0 ? 0 : (currentTime / duration) * 100;
+  const displayedTime = Math.min(Math.max(currentTime, 0), duration);
+  const progress = duration === 0 ? 0 : (displayedTime / duration) * 100;
 
   useEffect(() => {
     if (!isPlaying || duration === 0) return;
 
-    const timer = window.setInterval(() => {
-      setCurrentTime((time) => {
-        if (time >= duration - 1) {
-          setIsPlaying(false);
-          return duration;
-        }
-
-        return time + 1;
-      });
+    const timer = window.setTimeout(() => {
+      const nextTime = Math.min(displayedTime + 1, duration);
+      onTimeChange(nextTime);
+      if (nextTime >= duration) onPlayingChange(false);
     }, 1000);
 
-    return () => window.clearInterval(timer);
-  }, [duration, isPlaying]);
+    return () => window.clearTimeout(timer);
+  }, [displayedTime, duration, isPlaying, onPlayingChange, onTimeChange]);
 
   const handleSeek = (value: string) => {
     const nextTime = Number(value);
-    if (Number.isFinite(nextTime)) setCurrentTime(Math.min(Math.max(nextTime, 0), duration));
+    if (Number.isFinite(nextTime)) {
+      const clampedTime = Math.min(Math.max(nextTime, 0), duration);
+      onTimeChange(clampedTime);
+    }
   };
 
   const togglePlayback = () => {
     if (duration === 0) return;
-    if (currentTime >= duration) setCurrentTime(0);
-    setIsPlaying((playing) => !playing || currentTime >= duration);
+    if (displayedTime >= duration) onTimeChange(0);
+    onPlayingChange(!isPlaying || displayedTime >= duration);
   };
 
   return (
@@ -75,13 +82,13 @@ export function MediaPlayer({ durationSeconds }: MediaPlayerProps) {
             max={duration}
             min="0"
             onChange={(event) => handleSeek(event.target.value)}
-            step="1"
+            step="0.1"
             style={{ background: `linear-gradient(to right, #6047d9 0%, #6047d9 ${progress}%, #e7e4ef ${progress}%, #e7e4ef 100%)` }}
             type="range"
-            value={currentTime}
+            value={displayedTime}
           />
           <div className={styles.timeLabels} aria-live="off">
-            <time dateTime={`PT${currentTime}S`}>{formatTimestamp(currentTime)}</time>
+            <time dateTime={`PT${displayedTime}S`}>{formatTimestamp(displayedTime)}</time>
             <time dateTime={`PT${duration}S`}>{formatTimestamp(duration)}</time>
           </div>
         </div>

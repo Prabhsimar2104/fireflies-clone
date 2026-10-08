@@ -6,10 +6,12 @@ import { getTranscript, type TranscriptSegment } from "../lib/transcripts";
 import styles from "./Transcript.module.css";
 
 type TranscriptProps = {
+  currentTime: number;
   meetingId: number;
+  onSegmentSelect: (startTime: number) => void;
 };
 
-export function Transcript({ meetingId }: TranscriptProps) {
+export function Transcript({ currentTime, meetingId, onSegmentSelect }: TranscriptProps) {
   const [segments, setSegments] = useState<TranscriptSegment[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -37,6 +39,10 @@ export function Transcript({ meetingId }: TranscriptProps) {
     return () => controller.abort();
   }, [meetingId, requestVersion]);
 
+  const activeSegmentId = segments?.find(
+    (segment) => currentTime >= segment.start_time && currentTime < segment.end_time,
+  )?.id;
+
   return (
     <section className={styles.section} aria-labelledby="transcript-heading">
       <div className={styles.sectionHeader}>
@@ -52,15 +58,27 @@ export function Transcript({ meetingId }: TranscriptProps) {
       {!isLoading && !errorMessage && segments?.length === 0 && <div className={styles.state}><p>No transcript yet</p><span>Transcript segments will appear here when they are available.</span></div>}
       {!isLoading && !errorMessage && segments && segments.length > 0 && (
         <ol className={styles.segments}>
-          {segments.map((segment) => (
-            <li className={styles.segment} key={segment.id}>
-              <time dateTime={`PT${segment.start_time}S`}>{formatTimestamp(segment.start_time)}</time>
-              <div>
-                <h3>{segment.speaker}</h3>
-                <p>{segment.text}</p>
-              </div>
-            </li>
-          ))}
+          {segments.map((segment) => {
+            const isActive = segment.id === activeSegmentId;
+
+            return (
+              <li className={`${styles.segment} ${isActive ? styles.segmentActive : ""}`} key={segment.id}>
+                <button
+                  aria-current={isActive ? "true" : undefined}
+                  aria-label={`Seek to ${formatTimestamp(segment.start_time)}: ${segment.speaker}`}
+                  className={styles.segmentButton}
+                  onClick={() => onSegmentSelect(segment.start_time)}
+                  type="button"
+                >
+                  <time dateTime={`PT${segment.start_time}S`}>{formatTimestamp(segment.start_time)}</time>
+                  <div>
+                    <h3>{segment.speaker}</h3>
+                    <p>{segment.text}</p>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
