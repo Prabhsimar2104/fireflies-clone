@@ -3,6 +3,7 @@ import styles from "./MeetingList.module.css";
 
 type MeetingListProps = {
   meetings: Meeting[];
+  hasActiveFilters?: boolean;
 };
 
 function formatMeetingDate(meetingDate: string): string {
@@ -26,12 +27,12 @@ function formatDuration(durationSeconds: number): string {
   return `${minutes}m`;
 }
 
-export function MeetingList({ meetings }: MeetingListProps) {
+export function MeetingList({ meetings, hasActiveFilters = false }: MeetingListProps) {
   if (meetings.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <h2>No meetings yet</h2>
-        <p>When meetings are added, they will appear here.</p>
+        <h2>{hasActiveFilters ? "No meetings found" : "No meetings yet"}</h2>
+        <p>{hasActiveFilters ? "Try adjusting or clearing your filters." : "When meetings are added, they will appear here."}</p>
       </div>
     );
   }
