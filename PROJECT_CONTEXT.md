@@ -175,7 +175,25 @@ Meeting list/detail responses do not include transcript, summary, topic, or acti
 
 Transcript responses expose only `id`, `speaker`, `start_time`, `end_time`, and `text`. There is no separate transcript search endpoint yet; numeric timestamps and individual segments are intended to support future search/highlighting and media seeking.
 
-Not implemented in the current repository: summary APIs, topic APIs, action-item APIs, authentication, file upload, audio processing, speech-to-text, and AI/LLM integration.
+### Summary
+
+- `GET /api/v1/meetings/{meeting_id}/summary` — returns the meeting summary and its topics ordered by position.
+- `PATCH /api/v1/meetings/{meeting_id}/summary` — updates the existing summary text.
+
+### Summary Topics
+
+- `POST /api/v1/meetings/{meeting_id}/summary/topics` — creates an ordered summary topic.
+- `PATCH /api/v1/meetings/{meeting_id}/summary/topics/{topic_id}` — partially updates a meeting-owned summary topic.
+- `DELETE /api/v1/meetings/{meeting_id}/summary/topics/{topic_id}` — deletes a meeting-owned summary topic.
+
+### Action Items
+
+- `GET /api/v1/meetings/{meeting_id}/action-items` — returns the meeting's action items in stable ID order.
+- `POST /api/v1/meetings/{meeting_id}/action-items` — creates an action item.
+- `PATCH /api/v1/meetings/{meeting_id}/action-items/{action_item_id}` — partially updates an action item, including its completion state.
+- `DELETE /api/v1/meetings/{meeting_id}/action-items/{action_item_id}` — deletes a meeting-owned action item.
+
+Authentication, file upload, audio processing, speech-to-text, and AI/LLM integration are not implemented in the current repository.
 
 ## 8. Completed Development Phases
 
@@ -186,20 +204,20 @@ Not implemented in the current repository: summary APIs, topic APIs, action-item
 - Phase 4 — Backend API foundation: added `/api/v1`, CORS, configuration, router organization, service structure, and database session dependency.
 - Phase 5 — Meetings CRUD API: added paginated/filterable meeting listing and meeting create, read, update, and delete operations.
 - Phase 6 — Transcript API: added ordered transcript retrieval and segment create, update, and delete operations with participant and timestamp validation.
+- Phase 7 — Summary & Action Items API: added summary retrieval/update, summary-topic create/update/delete, and action-item create/read/update/delete operations with meeting ownership and validation.
 
 ## 9. Current Status
 
 Current phase:
 
-**Phase 7 — Summary & Action Items API**
+**Phase 8 — Backend testing/smoke testing**
 
-Phase 7 has **not** been implemented yet.
+Phase 7 is complete. The Summary & Action Items APIs are implemented and documented above. The next focus is backend testing and smoke testing.
 
 ## 10. Remaining Roadmap
 
 Planned remaining work, in broad order:
 
-- Summary & Action Items APIs
 - Backend testing and completion
 - Frontend layout
 - Meetings dashboard/library
@@ -314,4 +332,4 @@ The exact active branch and remote configuration are not confirmed in this docum
 
 Before implementing anything, inspect the current repository and this document. Treat the actual codebase as the source of truth. Continue from the current phase rather than rebuilding existing functionality. Preserve the existing backend/frontend separation, router-schema-service layering, database models, seed behavior, and API versioning.
 
-The next planned implementation task is **Phase 7 — Summary & Action Items API**. Do not implement later frontend phases in the same task unless explicitly requested.
+The next planned implementation task is **Phase 8 — Backend testing/smoke testing**. Do not implement later frontend phases in the same task unless explicitly requested.
