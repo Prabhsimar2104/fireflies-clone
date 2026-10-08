@@ -2,9 +2,9 @@
 
 ## 1. Project overview
 
-Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through transcript/player synchronization.
+Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through transcript search and highlighting.
 
-The codebase—not the original assignment description—is the source of truth. Real media playback, transcript search, summary UI, action-item UI, meeting CRUD UI, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
+The codebase—not the original assignment description—is the source of truth. Real media playback, summary UI, action-item UI, meeting CRUD UI, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
 
 ## 2. Stack and architecture
 
@@ -35,7 +35,7 @@ frontend/app/
     MeetingDetail.tsx               meeting metadata and synchronized playback/transcript section
     MeetingPlayback.tsx             shared playback state for the player and transcript
     MediaPlayer.tsx                 controlled simulated meeting-duration-driven playback controls
-    Transcript.tsx                  client-side transcript loading, display, and active segment state
+    Transcript.tsx                  client-side transcript loading, search, highlighting, and active segment state
   lib/
     meetings.ts                    meeting types and list API client
     meetingDetail.ts                single-meeting API client
@@ -90,7 +90,9 @@ The root page (`/`) is a client component. It fetches the paginated meetings res
 
 ### Transcript display
 
-`Transcript` is a client component rendered through `MeetingPlayback`. It fetches `GET /api/v1/meetings/{meeting_id}/transcript`, supports abort-on-unmount and retry, shows loading/error/empty states, displays the segment count, and renders ordered segments with speaker, text, and `MM:SS` start timestamps. Clicking a segment seeks the shared player time to its `start_time`, including fractional seconds. Playback progression and manual player seeking update the active transcript row. Active-segment detection uses `start_time <= currentTime < end_time`; intentional gaps between segments have no active row. It does not provide transcript search, matching-text highlighting, or editing.
+`Transcript` is a client component rendered through `MeetingPlayback`. It fetches `GET /api/v1/meetings/{meeting_id}/transcript`, supports abort-on-unmount and retry, shows loading/error/empty states, displays the segment count, and renders ordered segments with speaker, text, and `MM:SS` start timestamps. Clicking a segment seeks the shared player time to its `start_time`, including fractional seconds. Playback progression and manual player seeking update the active transcript row. Active-segment detection uses `start_time <= currentTime < end_time`; intentional gaps between segments have no active row.
+
+Transcript search is local to the loaded segments for the current meeting. It performs case-insensitive literal-text matching, highlights every query occurrence without treating the query as a regular expression, and reports matching segments rather than individual occurrences. Previous/next controls select a matching segment and scroll it into view; no-match searches show a clear empty-results message. Clearing the search removes highlights and the selected search result. Search-selected rows are visually distinct from playback-active rows, including when both states apply. Transcript search does not provide global meeting search or editing.
 
 ### Frontend data-fetching modules
 
@@ -139,18 +141,18 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 
 - Phase 12 — Media Player Placeholder
 - Phase 13 — Transcript ↔ Player Synchronization
+- Phase 14 — Transcript Search & Highlighting
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, and transcript/player synchronization. Do not rewrite or reimplement those phases.
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, and transcript search/highlighting. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 13 — Transcript ↔ Player Synchronization is complete.**
+Current status: **Phase 14 — Transcript Search & Highlighting is complete.**
 
-Phase 13 was manually tested: transcript click-to-seek, playback-driven active-row updates, and manual-seek active-row updates passed. Temporary `[PHASE13]` diagnostic logs were removed after verification. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
+Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Phase 14 was manually tested in the browser, including search, literal highlighting, result navigation, clear search, and no-results behavior. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
 
 Remaining work, in likely order:
 
-- transcript search and matching-text highlighting;
 - fetch and present summary/topics and action items in the meeting detail experience;
 - meeting CRUD UI, forms/modals/toasts;
 - frontend polish and any additional responsive/accessibility improvements;
@@ -180,7 +182,7 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 13, beginning with transcript search and matching-text highlighting unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments. Do not add Summary/Action Items UI unless explicitly requested. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 14, beginning with fetching and presenting summary/topics and action items in the meeting detail experience unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments, and preserve local literal-text transcript search/highlighting. Do not add Summary/Action Items UI unless explicitly requested. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 
