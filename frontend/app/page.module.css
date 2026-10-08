@@ -21,3 +21,7 @@
 .errorState h2 { color: #3a374a; font-size: 18px; }
 .errorState p { margin-top: 8px; font-size: 14px; }
 .errorState button { justify-self: center; margin-top: 18px; padding: 9px 14px; border: 0; border-radius: 8px; color: #ffffff; background: #6047d9; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+.errorState h1 { color: #3a374a; font-size: 20px; }
+.errorState a { justify-self: center; margin-top: 16px; color: #6047d9; font-size: 14px; font-weight: 650; }
+.errorState a:hover { text-decoration: underline; }
+.loadingTitle { color: #28253a; font-size: clamp(30px, 4vw, 38px); font-weight: 720; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 30px; }

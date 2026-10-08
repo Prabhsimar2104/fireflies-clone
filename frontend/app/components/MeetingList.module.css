@@ -13,7 +13,11 @@
   border: 1px solid #e8e6ef;
   border-radius: 13px;
   background: #ffffff;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
+
+.meeting:hover { border-color: #cfc6f6; box-shadow: 0 8px 20px rgba(57, 45, 104, .06); transform: translateY(-1px); }
+.meeting:focus-visible { outline: 3px solid rgba(96, 71, 217, .3); outline-offset: 2px; }
 
 .meetingDetails h2 {
   color: #302d40;

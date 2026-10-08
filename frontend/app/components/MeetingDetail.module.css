@@ -1,0 +1,5 @@
+.page { max-width: 900px; }
+.backLink { display: inline-flex; margin-bottom: 30px; color: #6149d4; font-size: 14px; font-weight: 650; }.backLink:hover { text-decoration: underline; }
+.header { margin-bottom: 30px; }.eyebrow { margin-bottom: 8px; color: #746f85; font-size: 13px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }.header h1 { color: #28253a; font-size: clamp(30px, 4vw, 38px); font-weight: 720; letter-spacing: -1.5px; line-height: 1.15; }
+.details { display: grid; gap: 0; overflow: hidden; border: 1px solid #e8e6ef; border-radius: 14px; background: #ffffff; }.details > div { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 20px; padding: 20px 24px; border-bottom: 1px solid #eeecf3; }.details > div:last-child { border-bottom: 0; }.details dt { color: #888396; font-size: 13px; font-weight: 650; }.details dd { color: #3d394d; font-size: 14px; line-height: 1.5; }.participantSection dd { max-width: 560px; }
+@media (max-width: 600px) { .backLink { margin-bottom: 24px; }.details > div { grid-template-columns: 1fr; gap: 5px; padding: 18px 20px; } }
