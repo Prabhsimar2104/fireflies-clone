@@ -13,7 +13,7 @@ export function MeetingFilters({ query, onQueryChange, onClear }: MeetingFilters
   const updateText = (field: "search" | "participant") => (event: ChangeEvent<HTMLInputElement>) => onQueryChange({ [field]: event.target.value });
 
   return (
-    <div className={styles.filters}>
+    <div aria-label="Filter meetings" className={styles.filters} role="search">
       <label className={`${styles.field} ${styles.searchField}`}>
         <span>Search meetings</span>
         <input type="search" value={query.search} onChange={updateText("search")} placeholder="Search by title" />

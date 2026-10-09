@@ -21,6 +21,7 @@ function toApiDateTime(value: string): string {
 
 export function MeetingFormDialog({ initialMeeting, onClose, onSave }: MeetingFormDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const isUserClosingRef = useRef(false);
   const [title, setTitle] = useState(initialMeeting?.title ?? "");
   const [meetingDate, setMeetingDate] = useState(toDateTimeInput(initialMeeting?.meeting_date));
   const [durationSeconds, setDurationSeconds] = useState(String(initialMeeting?.duration_seconds ?? 0));
@@ -32,8 +33,23 @@ export function MeetingFormDialog({ initialMeeting, onClose, onSave }: MeetingFo
   useEffect(() => {
     const dialog = dialogRef.current;
     dialog?.showModal();
-    return () => dialog?.close();
+    return () => {
+      if (dialog?.open) dialog.close();
+    };
   }, []);
+
+  const requestClose = () => {
+    const dialog = dialogRef.current;
+    if (!dialog?.open) return;
+    isUserClosingRef.current = true;
+    dialog.close();
+  };
+
+  const handleDialogClose = () => {
+    if (!isUserClosingRef.current) return;
+    isUserClosingRef.current = false;
+    onClose();
+  };
 
   const updateParticipant = (index: number, value: string) => {
     setParticipants((current) => current.map((participant, participantIndex) => (
@@ -66,6 +82,7 @@ export function MeetingFormDialog({ initialMeeting, onClose, onSave }: MeetingFo
         duration_seconds: duration,
         participants: normalizedParticipants.map((name) => ({ name })),
       });
+      requestClose();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to save meeting.");
       setIsSaving(false);
@@ -73,16 +90,17 @@ export function MeetingFormDialog({ initialMeeting, onClose, onSave }: MeetingFo
   };
 
   return (
-    <dialog aria-labelledby="meeting-form-heading" className={styles.dialog} onCancel={(event) => { event.preventDefault(); if (!isSaving) onClose(); }} ref={dialogRef}>
+    <dialog aria-describedby="meeting-form-description" aria-labelledby="meeting-form-heading" className={styles.dialog} onCancel={(event) => { event.preventDefault(); if (!isSaving) requestClose(); }} onClose={handleDialogClose} ref={dialogRef}>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.dialogHeader}>
           <div>
             <p className={styles.eyebrow}>{isEditing ? "Update" : "Create"}</p>
             <h2 id="meeting-form-heading">{isEditing ? "Edit meeting" : "New meeting"}</h2>
+            <p className={styles.srOnly} id="meeting-form-description">Complete the meeting details, then save or cancel.</p>
           </div>
-          <button aria-label="Close meeting form" className={styles.closeButton} disabled={isSaving} onClick={onClose} type="button">×</button>
+          <button aria-label="Close meeting form" className={styles.closeButton} disabled={isSaving} onClick={requestClose} type="button">×</button>
         </div>
-        {errorMessage && <div className={styles.formError} role="alert">{errorMessage}</div>}
+        {errorMessage && <div aria-live="assertive" className={styles.formError} role="alert">{errorMessage}</div>}
         <label className={styles.field}><span>Title</span><input autoFocus disabled={isSaving} maxLength={255} onChange={(event) => setTitle(event.target.value)} required value={title} /></label>
         <label className={styles.field}><span>Date and time</span><input disabled={isSaving} onChange={(event) => setMeetingDate(event.target.value)} required type="datetime-local" value={meetingDate} /></label>
         <label className={styles.field}><span>Duration (seconds)</span><input disabled={isSaving} min="0" onChange={(event) => setDurationSeconds(event.target.value)} required step="1" type="number" value={durationSeconds} /></label>
@@ -96,7 +114,7 @@ export function MeetingFormDialog({ initialMeeting, onClose, onSave }: MeetingFo
           ))}
           <button className={styles.addParticipant} disabled={isSaving || participants.length >= 50} onClick={() => setParticipants((current) => [...current, ""])} type="button">Add participant</button>
         </fieldset>
-        <div className={styles.formActions}><button disabled={isSaving} onClick={onClose} type="button">Cancel</button><button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "Saving…" : isEditing ? "Save changes" : "Create meeting"}</button></div>
+        <div className={styles.formActions}><button disabled={isSaving} onClick={requestClose} type="button">Cancel</button><button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "Saving…" : isEditing ? "Save changes" : "Create meeting"}</button></div>
       </form>
     </dialog>
   );

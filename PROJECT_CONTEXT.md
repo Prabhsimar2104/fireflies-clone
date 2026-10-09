@@ -49,7 +49,7 @@ frontend/app/
   meetings/[meetingId]/             dynamic detail route plus loading/error/not-found UI
 ```
 
-`AppShell` provides Fireflies-style navigation labels (Meetings, Search, Settings), workspace header, notifications/profile controls, and the invite button. Search and Settings navigation are visual placeholders.
+`AppShell` provides Fireflies-style navigation labels (Meetings, Search, Settings), workspace header, notifications/profile controls, and the invite button. Meetings is a real link; Search and Settings are semantically disabled unavailable controls. The inactive workspace, invitation, notification, and profile controls are also clearly marked unavailable.
 
 ## 3. Database and seed data
 
@@ -109,6 +109,14 @@ Transcript search is local to the loaded segments for the current meeting. It pe
 
 `MeetingSummary` and `ActionItems` independently fetch the existing summary and action-items APIs through `lib/meetingInsights.ts`. The meeting detail page displays summary text and topics in the API-returned order. A summary HTTP 404 is isolated as a “No summary yet” state and does not break the detail page. Summary and action-item sections each provide loading, error/retry, and empty states. Action items display their task, optional assignee or unassigned status, and read-only Open/Completed status. No backend, database, seed-data, or API-contract changes were made.
 
+### Frontend Shell Accessibility and Responsive Polish
+
+Phase 17 replaced misleading `href="#"` navigation with a real Meetings link and semantically disabled Search and Settings controls. Inactive workspace, invitation, notification, and profile controls are visibly and accessibly marked unavailable. Interactive controls and meeting filters have accessible labels and visible keyboard focus styles.
+
+The frontend now improves text wrapping, truncation, and narrow-screen usability across the meeting library, filters, detail layout, player, transcript, summaries, action items, and CRUD dialogs. Dialogs are viewport-constrained and scrollable, have larger touch targets, descriptions, and accessible error announcements.
+
+Create, Edit, and Delete dialogs restore focus to their respective opener after close, Cancel, or Escape when that opener remains enabled and connected. Native dialog close handling distinguishes explicit user/successful-save closes from cleanup closes, preventing cleanup-triggered close events from incorrectly resetting parent state or interfering with focus restoration. CRUD, transcript search, click-to-seek, playback synchronization, summaries, and action items remain intact.
+
 ### Frontend data-fetching modules
 
 - `lib/meetings.ts`: `Meeting`/query/response types plus `getMeetings`, `createMeeting`, `updateMeeting`, and `deleteMeeting`; maps UI filters to API query parameters and parses mutation errors.
@@ -160,18 +168,18 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 14 — Transcript Search & Highlighting
 - Phase 15 — Meeting Detail Summary & Action Items UI
 - Phase 16 — Meeting CRUD UI
+- Phase 17 — Frontend Shell Accessibility and Responsive Polish
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, and meeting CRUD UI. Do not rewrite or reimplement those phases.
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, meeting CRUD UI, and frontend shell accessibility/responsive polish. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 16 — Meeting CRUD UI is complete.**
+Current status: **Phase 17 — Frontend Shell Accessibility and Responsive Polish is complete.**
 
-Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, and action-item features remain intact. Phase 16 workflows and existing features were manually tested successfully. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
+Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, action-item, and CRUD features remain intact. Phase 17 manual browser testing passed for responsive layouts, shell controls, keyboard navigation, dialog opening/closing, Escape/cancel, successful save, deletion cancellation, and focus restoration. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
 
 Remaining work, in likely order:
 
-- frontend polish and any additional responsive/accessibility improvements;
 - final documentation, testing, and deployment.
 
 These items are not complete unless implemented in the repository. In particular, do not claim the backend Summary/Action Items APIs mean their frontend UI is complete.
@@ -198,7 +206,7 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 16 with frontend polish and responsive/accessibility improvements unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; and the meeting CRUD dialog and feedback flows. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 17 with final documentation, testing, and deployment unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; the meeting CRUD dialog and feedback flows; and dialog focus restoration. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 

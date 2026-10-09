@@ -20,6 +20,7 @@
 .meeting:focus-visible { outline: 3px solid rgba(96, 71, 217, .3); outline-offset: 2px; }
 
 .meetingDetails h2 {
+  overflow-wrap: anywhere;
   color: #302d40;
   font-size: 16px;
   font-weight: 680;
@@ -27,6 +28,7 @@
 
 .meetingDetails p,
 .participants {
+  overflow-wrap: anywhere;
   color: #777387;
   font-size: 13px;
   line-height: 1.5;

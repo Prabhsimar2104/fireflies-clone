@@ -11,14 +11,30 @@ type DeleteMeetingDialogProps = {
 
 export function DeleteMeetingDialog({ meetingTitle, onClose, onConfirm }: DeleteMeetingDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const isUserClosingRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     dialog?.showModal();
-    return () => dialog?.close();
+    return () => {
+      if (dialog?.open) dialog.close();
+    };
   }, []);
+
+  const requestClose = () => {
+    const dialog = dialogRef.current;
+    if (!dialog?.open) return;
+    isUserClosingRef.current = true;
+    dialog.close();
+  };
+
+  const handleDialogClose = () => {
+    if (!isUserClosingRef.current) return;
+    isUserClosingRef.current = false;
+    onClose();
+  };
 
   const handleConfirm = async () => {
     setErrorMessage(null);
@@ -32,12 +48,12 @@ export function DeleteMeetingDialog({ meetingTitle, onClose, onConfirm }: Delete
   };
 
   return (
-    <dialog aria-labelledby="delete-meeting-heading" className={styles.dialog} onCancel={(event) => { event.preventDefault(); if (!isDeleting) onClose(); }} ref={dialogRef}>
+    <dialog aria-describedby="delete-meeting-description" aria-labelledby="delete-meeting-heading" className={styles.dialog} onCancel={(event) => { event.preventDefault(); if (!isDeleting) requestClose(); }} onClose={handleDialogClose} ref={dialogRef}>
       <div className={styles.form}>
-        <div className={styles.dialogHeader}><div><p className={styles.dangerEyebrow}>Permanent action</p><h2 id="delete-meeting-heading">Delete meeting?</h2></div><button aria-label="Close delete confirmation" className={styles.closeButton} disabled={isDeleting} onClick={onClose} type="button">×</button></div>
-        <p className={styles.deleteCopy}>Delete “{meetingTitle}”? This permanently removes its transcript, summary, topics, and action items.</p>
-        {errorMessage && <div className={styles.formError} role="alert">{errorMessage}</div>}
-        <div className={styles.formActions}><button disabled={isDeleting} onClick={onClose} type="button">Cancel</button><button className={styles.deleteButton} disabled={isDeleting} onClick={handleConfirm} type="button">{isDeleting ? "Deleting…" : "Delete meeting"}</button></div>
+        <div className={styles.dialogHeader}><div><p className={styles.dangerEyebrow}>Permanent action</p><h2 id="delete-meeting-heading">Delete meeting?</h2></div><button aria-label="Close delete confirmation" className={styles.closeButton} disabled={isDeleting} onClick={requestClose} type="button">×</button></div>
+        <p className={styles.deleteCopy} id="delete-meeting-description">Delete “{meetingTitle}”? This permanently removes its transcript, summary, topics, and action items.</p>
+        {errorMessage && <div aria-live="assertive" className={styles.formError} role="alert">{errorMessage}</div>}
+        <div className={styles.formActions}><button disabled={isDeleting} onClick={requestClose} type="button">Cancel</button><button className={styles.deleteButton} disabled={isDeleting} onClick={handleConfirm} type="button">{isDeleting ? "Deleting…" : "Delete meeting"}</button></div>
       </div>
     </dialog>
   );

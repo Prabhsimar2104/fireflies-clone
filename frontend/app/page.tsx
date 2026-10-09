@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MeetingFilters } from "./components/MeetingFilters";
 import { MeetingFormDialog } from "./components/MeetingFormDialog";
 import { MeetingList } from "./components/MeetingList";
@@ -22,6 +22,7 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const newMeetingButtonRef = useRef<HTMLButtonElement>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     const message = window.sessionStorage.getItem("meeting-feedback");
@@ -56,9 +57,14 @@ export default function Home() {
   const hasActiveFilters = Boolean(query.search || query.participant || query.dateFrom || query.dateTo || query.sortOrder === "oldest");
   const handleCreate = async (payload: MeetingCreateInput) => {
     const meeting = await createMeeting(payload);
-    setIsCreateOpen(false);
     setFeedbackMessage(`“${meeting.title}” was created.`);
     setRequestVersion((current) => current + 1);
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateOpen(false);
+    const opener = newMeetingButtonRef.current;
+    if (opener?.isConnected && !opener.disabled) opener.focus();
   };
 
   return (
@@ -71,7 +77,7 @@ export default function Home() {
             {meetings ? (meetings.total === 0 ? "No meetings match your current view." : `${meetings.total} meeting${meetings.total === 1 ? "" : "s"} in your library.`) : "Loading your meetings…"}
           </p>
         </div>
-        <button className={styles.newMeetingButton} onClick={() => setIsCreateOpen(true)} type="button">New meeting</button>
+        <button className={styles.newMeetingButton} onClick={() => setIsCreateOpen(true)} ref={newMeetingButtonRef} type="button">New meeting</button>
       </div>
 
       {feedbackMessage && <div className={styles.successState} role="status">{feedbackMessage}</div>}
@@ -80,7 +86,7 @@ export default function Home() {
       {isLoading && <div className={styles.loadingState} aria-busy="true">Loading meetings…</div>}
       {!isLoading && errorMessage && <div className={styles.errorState} role="alert"><h2>We couldn’t load your meetings</h2><p>{errorMessage}</p><button type="button" onClick={() => setRequestVersion((current) => current + 1)}>Try again</button></div>}
       {!isLoading && !errorMessage && meetings && <MeetingList meetings={meetings.items} hasActiveFilters={hasActiveFilters} />}
-      {isCreateOpen && <MeetingFormDialog onClose={() => setIsCreateOpen(false)} onSave={handleCreate} />}
+      {isCreateOpen && <MeetingFormDialog onClose={handleCreateDialogClose} onSave={handleCreate} />}
     </section>
   );
 }

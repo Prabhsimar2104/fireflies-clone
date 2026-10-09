@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import styles from "./AppShell.module.css";
 
 type AppShellProps = { children: ReactNode };
 
 const navigationItems = [
-  { label: "Meetings", icon: "meetings", active: true },
-  { label: "Search", icon: "search", active: false },
-  { label: "Settings", icon: "settings", active: false },
+  { label: "Meetings", icon: "meetings", href: "/" },
+  { label: "Search", icon: "search" },
+  { label: "Settings", icon: "settings" },
 ];
 
 function NavIcon({ name }: { name: string }) {
@@ -24,16 +25,24 @@ export function AppShell({ children }: AppShellProps) {
     <aside className={styles.sidebar}>
       <div className={styles.brand}><AppMark /><span className={styles.brandName}>fireflies</span></div>
       <nav className={styles.navigation} aria-label="Primary navigation">
-        {navigationItems.map((item) => <a className={`${styles.navItem} ${item.active ? styles.navItemActive : ""}`} href="#" key={item.label}><NavIcon name={item.icon} /><span>{item.label}</span></a>)}
+        {navigationItems.map((item) => item.href ? (
+          <Link aria-current="page" className={`${styles.navItem} ${styles.navItemActive}`} href={item.href} key={item.label}>
+            <NavIcon name={item.icon} /><span>{item.label}</span>
+          </Link>
+        ) : (
+          <button aria-label={`${item.label} is not available yet`} className={`${styles.navItem} ${styles.navItemUnavailable}`} disabled key={item.label} title={`${item.label} is not available yet`} type="button">
+            <NavIcon name={item.icon} /><span>{item.label}</span>
+          </button>
+        ))}
       </nav>
-      <div className={styles.sidebarFooter}><button className={styles.inviteButton} type="button"><span aria-hidden="true">+</span><span>Invite teammates</span></button></div>
+      <div className={styles.sidebarFooter}><button aria-label="Invite teammates is not available yet" className={styles.inviteButton} disabled title="Invite teammates is not available yet" type="button"><span aria-hidden="true">+</span><span>Invite teammates</span></button></div>
     </aside>
     <section className={styles.workspace}>
       <header className={styles.header}>
-        <button className={styles.workspacePicker} type="button" aria-label="Select workspace"><span className={styles.workspaceAvatar}>F</span><span>Fireflies workspace</span><span className={styles.chevron} aria-hidden="true">⌄</span></button>
+        <button aria-label="Workspace selection is not available yet" className={styles.workspacePicker} disabled title="Workspace selection is not available yet" type="button"><span className={styles.workspaceAvatar}>F</span><span className={styles.workspaceName}>Fireflies workspace</span><span className={styles.chevron} aria-hidden="true">⌄</span></button>
         <div className={styles.headerActions}>
-          <button className={styles.iconButton} type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button>
-          <button className={styles.profileButton} type="button" aria-label="Open profile menu">JD</button>
+          <button aria-label="Notifications are not available yet" className={styles.iconButton} disabled title="Notifications are not available yet" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button>
+          <button aria-label="Profile menu is not available yet" className={styles.profileButton} disabled title="Profile menu is not available yet" type="button">JD</button>
         </div>
       </header>
       <main className={styles.content}>{children}</main>
