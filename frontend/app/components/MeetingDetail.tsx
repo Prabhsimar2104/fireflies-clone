@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Meeting } from "../lib/meetings";
 import { formatDuration, formatMeetingDate } from "../lib/meetingFormatters";
+import { ActionItems } from "./ActionItems";
 import styles from "./MeetingDetail.module.css";
 import { MeetingPlayback } from "./MeetingPlayback";
+import { MeetingSummary } from "./MeetingSummary";
 
 type MeetingDetailProps = {
   meeting: Meeting;
@@ -31,6 +33,8 @@ export function MeetingDetail({ meeting }: MeetingDetailProps) {
         </div>
       </dl>
       <MeetingPlayback durationSeconds={meeting.duration_seconds} meetingId={meeting.id} />
+      <MeetingSummary meetingId={meeting.id} />
+      <ActionItems meetingId={meeting.id} />
     </section>
   );
 }
