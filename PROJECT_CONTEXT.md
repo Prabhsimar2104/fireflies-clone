@@ -2,9 +2,9 @@
 
 ## 1. Project overview
 
-Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through meeting CRUD UI.
+Fireflies Clone is a split full-stack meeting intelligence application. The repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend with meeting CRUD and action-item CRUD.
 
-The codebase—not the original assignment description—is the source of truth. Real media playback, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
+The codebase—not the original assignment description—is the source of truth. Real media playback, authentication, uploads, speech-to-text, and AI integration are not complete. The frontend and backend are deployed as a free demo using Vercel and Render; the Render SQLite filesystem is ephemeral, so stored changes are not guaranteed to persist across service resets or redeployments.
 
 ## 2. Stack and architecture
 
@@ -30,21 +30,21 @@ frontend/app/
   page.module.css                  library page styling
   components/
     AppShell.tsx                   sidebar, header, workspace chrome
-    MeetingFilters.tsx              search/filter/sort controls
-    MeetingList.tsx                 linked meeting rows and empty state
-    MeetingDetail.tsx               meeting metadata, playback/transcript, summary, and action-items sections
+    MeetingFilters.tsx             search/filter/sort controls
+    MeetingList.tsx                linked meeting rows and empty state
+    MeetingDetail.tsx              meeting metadata, playback/transcript, summary, and action-items sections
     MeetingPlayback.tsx             shared playback state for the player and transcript
-    MediaPlayer.tsx                 controlled simulated meeting-duration-driven playback controls
-    Transcript.tsx                  client-side transcript loading, search, highlighting, and active segment state
-    MeetingSummary.tsx              client-side summary and topic loading/display
-    ActionItems.tsx                 client-side action-item loading/display
+    MediaPlayer.tsx                controlled simulated meeting-duration-driven playback controls
+    Transcript.tsx                 client-side transcript loading, search, highlighting, and active segment state
+    MeetingSummary.tsx             client-side summary and topic loading/display
+    ActionItems.tsx                action-item loading, creation, editing, completion toggling, and deletion
     MeetingFormDialog.tsx           reusable native-dialog meeting create/edit form
     DeleteMeetingDialog.tsx         native-dialog cascading-delete confirmation
   lib/
     meetings.ts                    meeting types plus list and CRUD API clients
-    meetingDetail.ts                single-meeting API client
-    meetingInsights.ts              summary and action-items API clients
-    transcripts.ts                  transcript API client
+    meetingDetail.ts               single-meeting API client
+    meetingInsights.ts             summary and action-items API clients
+    transcripts.ts                 transcript API client
     meetingFormatters.ts            date, duration, and timestamp formatting
   meetings/[meetingId]/             dynamic detail route plus loading/error/not-found UI
 ```
@@ -75,11 +75,11 @@ The root page (`/`) is a client component. It fetches the paginated meetings res
 
 `MeetingFilters` supports:
 
-- case-insensitive title search through the backend `search` query;
-- participant-name filtering;
-- inclusive `From` and `To` date fields with input constraints;
-- newest/oldest sorting;
-- clearing active filters.
+- Case-insensitive title search through the backend `search` query.
+- Participant-name filtering.
+- Inclusive `From` and `To` date fields with input constraints.
+- Newest/oldest sorting.
+- Clearing active filters.
 
 `MeetingList` renders title, formatted meeting date/time, formatted duration, and participant names. Each row links to `/meetings/{id}`. The library includes a New meeting control that opens the reusable create/edit form; it refreshes after a successful creation and displays accessible mutation feedback.
 
@@ -107,7 +107,11 @@ Transcript search is local to the loaded segments for the current meeting. It pe
 
 ### Summary and Action Items
 
-`MeetingSummary` and `ActionItems` independently fetch the existing summary and action-items APIs through `lib/meetingInsights.ts`. The meeting detail page displays summary text and topics in the API-returned order. A summary HTTP 404 is isolated as a “No summary yet” state and does not break the detail page. Summary and action-item sections each provide loading, error/retry, and empty states. Action items display their task, optional assignee or unassigned status, and read-only Open/Completed status. No backend, database, seed-data, or API-contract changes were made.
+`MeetingSummary` and `ActionItems` independently fetch the existing summary and action-items APIs through `lib/meetingInsights.ts`. The meeting detail page displays summary text and topics in the API-returned order. A summary HTTP 404 is isolated as a “No summary yet” state and does not break the detail page.
+
+Summary and action-item sections provide loading, error/retry, and empty states. Action items display their task, optional assignee, and completion status. Users can create action items with an optional assignee, edit task descriptions and assignees, mark items completed or reopen them, and delete items after confirmation.
+
+Successful mutations update the local UI state without reloading the entire meeting. `lib/meetingInsights.ts` provides typed create, update, and delete API clients in addition to the existing read functions. The existing backend endpoints and API contracts are unchanged.
 
 ### Frontend Shell Accessibility and Responsive Polish
 
@@ -121,7 +125,7 @@ Create, Edit, and Delete dialogs restore focus to their respective opener after 
 
 - `lib/meetings.ts`: `Meeting`/query/response types plus `getMeetings`, `createMeeting`, `updateMeeting`, and `deleteMeeting`; maps UI filters to API query parameters and parses mutation errors.
 - `lib/meetingDetail.ts`: `getMeeting`; maps 404 to `null`.
-- `lib/meetingInsights.ts`: `getMeetingSummary` and `getActionItems`; maps a missing summary (404) to `null`.
+- `lib/meetingInsights.ts`: `getMeetingSummary` and `getActionItems`; maps a missing summary (404) to `null`; also provides typed `createActionItem`, `updateActionItem`, and `deleteActionItem` clients.
 - `lib/transcripts.ts`: `TranscriptSegment` type and `getTranscript`.
 - `lib/meetingFormatters.ts`: date, duration, and timestamp presentation helpers.
 
@@ -162,7 +166,6 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 10B — Meetings search, participant/date filtering, and sorting
 - Phase 11A — Meeting Detail page
 - Phase 11B — Transcript display
-
 - Phase 12 — Media Player Placeholder
 - Phase 13 — Transcript ↔ Player Synchronization
 - Phase 14 — Transcript Search & Highlighting
@@ -172,14 +175,24 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 18 — Project setup and architecture documentation
 - Phase 19 — Backend API test suite
 - Phase 20 — Final verification and assignment audit
+- Phase 21 — Action Item CRUD UI (create, edit, complete/reopen, delete)
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, meeting CRUD UI, frontend shell accessibility/responsive polish, and project setup/architecture documentation. Backend tests and Phase 20 audit files may still be uncommitted. Do not rewrite or reimplement those phases.
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, meeting CRUD UI, frontend shell accessibility/responsive polish, project setup/architecture documentation, backend tests, safe database bootstrap, and action-item CRUD UI. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 20 — Final Verification and Assignment Audit is complete.** The local application is implemented through meeting CRUD UI, accessibility polish, documentation, and an isolated backend test suite. **Public deployment and a hosted link are not complete.** No original assignment document is present in the repository; remaining assignment work is inferred from README/ARCHITECTURE limitations and this audit.
+Current status: **Phase 21 — Action Item CRUD UI is implemented and verified locally.** The frontend and backend are deployed as a free demo.
 
-Phase 20 verification (2026-10-09), performed without starting the dev servers, without init/seed, and without browser testing:
+- Frontend: https://fireflies-clone-orcin.vercel.app/
+- Backend: https://fireflies-clone-api-trco.onrender.com
+
+The deployed frontend was manually checked for the main flows. Action-item creation, editing, completion/reopening, deletion confirmation, and persistence after refresh were verified locally; this latest action-item CRUD change still needs to be committed, pushed, and checked on the live deployment.
+
+SQLite is retained for the free demo, but the Render filesystem is ephemeral, so data changes may be lost after service resets or redeployments. No original assignment document is present in the repository; remaining assignment work is inferred from README/ARCHITECTURE limitations and this audit.
+
+### Phase 20 verification (2026-10-09)
+
+Verification was performed without starting the dev servers, without init/seed, and without browser testing.
 
 - Backend tests from the repository root: `backend\.venv\Scripts\python.exe -m pytest -v` — **8 passed**.
 - Frontend lint from `frontend/`: `npm.cmd run lint` — **passed**.
@@ -189,12 +202,13 @@ Phase 20 verification (2026-10-09), performed without starting the dev servers, 
 - Starlette 1.7 `TestClient` requires `httpx2` (not `httpx`); `backend/requirements.txt` lists `pytest` and `httpx2`.
 - Frontend API base URL order is `NEXT_PUBLIC_BACKEND_API_URL` → `BACKEND_API_URL` → `http://127.0.0.1:8000` in the meetings, detail, transcript, and insights clients.
 - Backend CORS default is `http://localhost:3000` via `CORS_ORIGINS`. That matches the documented frontend origin. Opening the UI as `http://127.0.0.1:3000` would not match the default CORS origin.
-- Code review confirmed the implemented feature surfaces: library search/filter/sort, meeting detail, simulated playback with `start_time <= currentTime < end_time` active-segment sync, local transcript search, read-only summary/topics and action items, and create/edit/delete. This phase did not repeat manual browser testing.
-- No Dockerfile, hosting config, or deployed URL exists in the repository.
+- Code review confirmed the implemented feature surfaces at Phase 20: library search/filter/sort, meeting detail, simulated playback with `start_time <= currentTime < end_time` active-segment sync, local transcript search, read-only summary/topics and action items, and meeting create/edit/delete. This phase did not repeat manual browser testing.
+- Deployment is configured outside the repository: Vercel frontend at `https://fireflies-clone-orcin.vercel.app/` and Render backend at `https://fireflies-clone-api-trco.onrender.com`. The Render start command runs `python -m app.db.bootstrap` before Uvicorn; bootstrap creates tables and seeds only when the database is empty.
 
-Remaining work:
+### Remaining work
 
-- public deployment configuration, deployment instructions, and a hosted link.
+- Commit and push the action-item CRUD frontend changes, then verify action-item CRUD on the live deployment.
+- Consider final README polish and a final assignment checklist review.
 
 Phase 13 remains intact in code: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, action-item, and CRUD features remain intact. Real media playback, authentication, uploads, speech-to-text, and AI/LLM integration remain out of scope.
 
@@ -207,6 +221,8 @@ python -m app.db.init_db
 python -m app.db.seed
 python -m uvicorn app.main:app --reload
 ```
+
+**Warning:** `python -m app.db.seed` replaces the existing database contents with demo data. Do not run it against data you want to preserve.
 
 Backend tests from the repository root (does not use the development database):
 
@@ -226,7 +242,11 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 20 with public deployment and a hosted link unless a different task is requested. Do not claim the project is deployed until a live URL exists. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; the meeting CRUD dialog and feedback flows; and dialog focus restoration. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue with committing and pushing the action-item CRUD UI and verifying it on the live deployment unless a different task is requested. Do not claim the latest action-item CRUD change is deployed until the live URL has been checked.
+
+Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary display with independent fetch states; full action-item CRUD with independent fetch states; the meeting CRUD dialog and feedback flows; and dialog focus restoration.
+
+Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 

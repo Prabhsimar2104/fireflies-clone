@@ -46,3 +46,64 @@ export async function getActionItems(meetingId: number, signal?: AbortSignal): P
 
   return response.json() as Promise<ActionItem[]>;
 }
+
+export type ActionItemInput = {
+  task: string;
+  assignee: string | null;
+  completed?: boolean;
+};
+
+export async function createActionItem(
+  meetingId: number,
+  input: ActionItemInput,
+): Promise<ActionItem> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/meetings/${meetingId}/action-items`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Unable to create action item (${response.status}).`);
+  }
+
+  return response.json() as Promise<ActionItem>;
+}
+
+export async function updateActionItem(
+  meetingId: number,
+  actionItemId: number,
+  input: Partial<ActionItemInput>,
+): Promise<ActionItem> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/meetings/${meetingId}/action-items/${actionItemId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Unable to update action item (${response.status}).`);
+  }
+
+  return response.json() as Promise<ActionItem>;
+}
+
+export async function deleteActionItem(
+  meetingId: number,
+  actionItemId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/meetings/${meetingId}/action-items/${actionItemId}`,
+    { method: "DELETE" },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Unable to delete action item (${response.status}).`);
+  }
+}
