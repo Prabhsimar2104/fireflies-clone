@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fireflies Clone Frontend
 
-## Getting Started
+The frontend is a Next.js 16 App Router application for the Fireflies Clone meeting workspace. It requires the FastAPI backend to serve meeting, transcript, summary, and action-item data.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+From the `frontend/` directory in Windows PowerShell:
+
+```powershell
+npm.cmd ci
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` only when the backend is not running at its default address:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+Copy-Item .env.example .env.local
+```
 
-## Learn More
+The API base URL is resolved in this order:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+NEXT_PUBLIC_BACKEND_API_URL -> BACKEND_API_URL -> http://127.0.0.1:8000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`NEXT_PUBLIC_BACKEND_API_URL` is the first-choice frontend API URL. `BACKEND_API_URL` is the fallback when it is unset. See [.env.example](.env.example) for the supported variable.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The backend must allow the frontend origin through its `CORS_ORIGINS` setting; its local default is `http://localhost:3000`.
 
-## Deploy on Vercel
+## Commands
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```powershell
+npm.cmd run dev
+npm.cmd run lint
+npm.cmd run build
+npm.cmd run start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `dev` starts the development server at `http://localhost:3000`.
+- `lint` runs ESLint.
+- `build` creates an optimized production build.
+- `start` serves the production build and should be run after `build`.
+
+Use `npm.cmd` in PowerShell on this project’s development machine instead of the `npm.ps1` shim.
+
+## Backend dependency
+
+Start and seed the backend before using the frontend. See [../backend/README.md](../backend/README.md) for the Python environment, database initialization, destructive seed reset, and server commands.
+
+The default backend address is `http://127.0.0.1:8000`; the interactive API documentation is available at `http://127.0.0.1:8000/docs` while it is running.
