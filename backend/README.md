@@ -48,6 +48,22 @@ python -m uvicorn app.main:app --reload
 
 The local server is available at `http://127.0.0.1:8000`.
 
+## Run backend tests
+
+The API suite creates a separate temporary SQLite database for every test and does not use the local development database or seed command.
+
+From the repository root:
+
+```powershell
+backend\.venv\Scripts\python.exe -m pytest -v
+```
+
+From `backend/` with the virtual environment active:
+
+```powershell
+python -m pytest -v
+```
+
 ## Health and API documentation
 
 - Legacy health check: `http://127.0.0.1:8000/health`

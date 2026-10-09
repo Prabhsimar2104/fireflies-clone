@@ -169,20 +169,34 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 15 — Meeting Detail Summary & Action Items UI
 - Phase 16 — Meeting CRUD UI
 - Phase 17 — Frontend Shell Accessibility and Responsive Polish
+- Phase 18 — Project setup and architecture documentation
+- Phase 19 — Backend API test suite
+- Phase 20 — Final verification and assignment audit
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, meeting CRUD UI, and frontend shell accessibility/responsive polish. Do not rewrite or reimplement those phases.
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, meeting CRUD UI, frontend shell accessibility/responsive polish, and project setup/architecture documentation. Backend tests and Phase 20 audit files may still be uncommitted. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 17 — Frontend Shell Accessibility and Responsive Polish is complete.**
+Current status: **Phase 20 — Final Verification and Assignment Audit is complete.** The local application is implemented through meeting CRUD UI, accessibility polish, documentation, and an isolated backend test suite. **Public deployment and a hosted link are not complete.** No original assignment document is present in the repository; remaining assignment work is inferred from README/ARCHITECTURE limitations and this audit.
 
-Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, action-item, and CRUD features remain intact. Phase 17 manual browser testing passed for responsive layouts, shell controls, keyboard navigation, dialog opening/closing, Escape/cancel, successful save, deletion cancellation, and focus restoration. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
+Phase 20 verification (2026-10-09), performed without starting the dev servers, without init/seed, and without browser testing:
 
-Remaining work, in likely order:
+- Backend tests from the repository root: `backend\.venv\Scripts\python.exe -m pytest -v` — **8 passed**.
+- Frontend lint from `frontend/`: `npm.cmd run lint` — **passed**.
+- Frontend production build from `frontend/`: `npm.cmd run build` — **passed** (Next.js 16.4.0).
+- `git diff --check` — **passed** (CRLF checkout warnings only).
+- Tests use an isolated `tmp_path` SQLite file, assert they do not use `backend/data/fireflies_clone.db`, and enable `PRAGMA foreign_keys=ON`.
+- Starlette 1.7 `TestClient` requires `httpx2` (not `httpx`); `backend/requirements.txt` lists `pytest` and `httpx2`.
+- Frontend API base URL order is `NEXT_PUBLIC_BACKEND_API_URL` → `BACKEND_API_URL` → `http://127.0.0.1:8000` in the meetings, detail, transcript, and insights clients.
+- Backend CORS default is `http://localhost:3000` via `CORS_ORIGINS`. That matches the documented frontend origin. Opening the UI as `http://127.0.0.1:3000` would not match the default CORS origin.
+- Code review confirmed the implemented feature surfaces: library search/filter/sort, meeting detail, simulated playback with `start_time <= currentTime < end_time` active-segment sync, local transcript search, read-only summary/topics and action items, and create/edit/delete. This phase did not repeat manual browser testing.
+- No Dockerfile, hosting config, or deployed URL exists in the repository.
 
-- final documentation, testing, and deployment.
+Remaining work:
 
-These items are not complete unless implemented in the repository. In particular, do not claim the backend Summary/Action Items APIs mean their frontend UI is complete.
+- public deployment configuration, deployment instructions, and a hosted link.
+
+Phase 13 remains intact in code: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, action-item, and CRUD features remain intact. Real media playback, authentication, uploads, speech-to-text, and AI/LLM integration remain out of scope.
 
 ## 8. Commands
 
@@ -192,6 +206,12 @@ From `backend/` with the virtual environment active:
 python -m app.db.init_db
 python -m app.db.seed
 python -m uvicorn app.main:app --reload
+```
+
+Backend tests from the repository root (does not use the development database):
+
+```powershell
+backend\.venv\Scripts\python.exe -m pytest -v
 ```
 
 From `frontend/`:
@@ -206,7 +226,7 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 17 with final documentation, testing, and deployment unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; the meeting CRUD dialog and feedback flows; and dialog focus restoration. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 20 with public deployment and a hosted link unless a different task is requested. Do not claim the project is deployed until a live URL exists. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; the meeting CRUD dialog and feedback flows; and dialog focus restoration. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 

@@ -114,6 +114,18 @@ npm.cmd run start
 git diff --check
 ```
 
+Run backend API tests from the repository root:
+
+```powershell
+backend\.venv\Scripts\python.exe -m pytest -v
+```
+
+The same suite can be run from `backend/` with the virtual environment active:
+
+```powershell
+python -m pytest -v
+```
+
 ## Health and API documentation
 
 With the backend running:
