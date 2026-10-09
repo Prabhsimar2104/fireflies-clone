@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { MeetingFilters } from "./components/MeetingFilters";
+import { MeetingFormDialog } from "./components/MeetingFormDialog";
 import { MeetingList } from "./components/MeetingList";
-import { getMeetings, type MeetingListResponse, type MeetingQuery } from "./lib/meetings";
+import { createMeeting, getMeetings, type MeetingCreateInput, type MeetingListResponse, type MeetingQuery } from "./lib/meetings";
 import styles from "./page.module.css";
 
 const defaultQuery: MeetingQuery = {
@@ -20,6 +21,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const message = window.sessionStorage.getItem("meeting-feedback");
+    window.sessionStorage.removeItem("meeting-feedback");
+    return message;
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,6 +54,12 @@ export default function Home() {
 
   const updateQuery = (updates: Partial<MeetingQuery>) => setQuery((current) => ({ ...current, ...updates }));
   const hasActiveFilters = Boolean(query.search || query.participant || query.dateFrom || query.dateTo || query.sortOrder === "oldest");
+  const handleCreate = async (payload: MeetingCreateInput) => {
+    const meeting = await createMeeting(payload);
+    setIsCreateOpen(false);
+    setFeedbackMessage(`“${meeting.title}” was created.`);
+    setRequestVersion((current) => current + 1);
+  };
 
   return (
     <section className={styles.page}>
@@ -57,13 +71,16 @@ export default function Home() {
             {meetings ? (meetings.total === 0 ? "No meetings match your current view." : `${meetings.total} meeting${meetings.total === 1 ? "" : "s"} in your library.`) : "Loading your meetings…"}
           </p>
         </div>
+        <button className={styles.newMeetingButton} onClick={() => setIsCreateOpen(true)} type="button">New meeting</button>
       </div>
 
+      {feedbackMessage && <div className={styles.successState} role="status">{feedbackMessage}</div>}
       <MeetingFilters query={query} onQueryChange={updateQuery} onClear={() => setQuery(defaultQuery)} />
 
       {isLoading && <div className={styles.loadingState} aria-busy="true">Loading meetings…</div>}
       {!isLoading && errorMessage && <div className={styles.errorState} role="alert"><h2>We couldn’t load your meetings</h2><p>{errorMessage}</p><button type="button" onClick={() => setRequestVersion((current) => current + 1)}>Try again</button></div>}
       {!isLoading && !errorMessage && meetings && <MeetingList meetings={meetings.items} hasActiveFilters={hasActiveFilters} />}
+      {isCreateOpen && <MeetingFormDialog onClose={() => setIsCreateOpen(false)} onSave={handleCreate} />}
     </section>
   );
 }

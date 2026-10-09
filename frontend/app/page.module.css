@@ -19,6 +19,7 @@
 }
 
 .errorState h2 { color: #3a374a; font-size: 18px; }
+.successState { margin-bottom: 18px; padding: 12px 14px; border: 1px solid #bfe4cf; border-radius: 10px; color: #28734d; background: #f0fbf4; font-size: 14px; font-weight: 650; }
 .errorState p { margin-top: 8px; font-size: 14px; }
 .errorState button { justify-self: center; margin-top: 18px; padding: 9px 14px; border: 0; border-radius: 8px; color: #ffffff; background: #6047d9; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
 .errorState h1 { color: #3a374a; font-size: 20px; }

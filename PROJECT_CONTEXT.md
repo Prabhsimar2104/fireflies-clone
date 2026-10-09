@@ -2,9 +2,9 @@
 
 ## 1. Project overview
 
-Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through meeting-detail summary and action-items UI.
+Fireflies Clone is a split full-stack meeting intelligence application. The current repository contains a FastAPI backend with SQLite/SQLAlchemy persistence, deterministic development data, Meetings/Transcript/Summary/Action Items APIs, and a Next.js frontend through meeting CRUD UI.
 
-The codebase—not the original assignment description—is the source of truth. Real media playback, meeting CRUD UI, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
+The codebase—not the original assignment description—is the source of truth. Real media playback, authentication, uploads, speech-to-text, AI integration, and deployment are not complete.
 
 ## 2. Stack and architecture
 
@@ -38,8 +38,10 @@ frontend/app/
     Transcript.tsx                  client-side transcript loading, search, highlighting, and active segment state
     MeetingSummary.tsx              client-side summary and topic loading/display
     ActionItems.tsx                 client-side action-item loading/display
+    MeetingFormDialog.tsx           reusable native-dialog meeting create/edit form
+    DeleteMeetingDialog.tsx         native-dialog cascading-delete confirmation
   lib/
-    meetings.ts                    meeting types and list API client
+    meetings.ts                    meeting types plus list and CRUD API clients
     meetingDetail.ts                single-meeting API client
     meetingInsights.ts              summary and action-items API clients
     transcripts.ts                  transcript API client
@@ -79,13 +81,19 @@ The root page (`/`) is a client component. It fetches the paginated meetings res
 - newest/oldest sorting;
 - clearing active filters.
 
-`MeetingList` renders title, formatted meeting date/time, formatted duration, and participant names. Each row links to `/meetings/{id}`. The UI does not create, edit, or delete meetings.
+`MeetingList` renders title, formatted meeting date/time, formatted duration, and participant names. Each row links to `/meetings/{id}`. The library includes a New meeting control that opens the reusable create/edit form; it refreshes after a successful creation and displays accessible mutation feedback.
 
 ### Meeting Detail
 
 `frontend/app/meetings/[meetingId]/page.tsx` is the dynamic detail route. It server-fetches the meeting through `getMeeting`, displays the meeting title, date/time, duration, participants, a back link, synchronized playback/transcript, summary, and action-items sections, and provides route-level loading, error, and not-found states. The detail response contains only meeting metadata and participants; summary, topics, action items, and transcript content are fetched separately.
 
 `MeetingPlayback` owns shared `currentTime` and `isPlaying` state for its `MediaPlayer` and `Transcript` children. Its playback callback is stabilized with `useCallback` so player time changes do not unnecessarily restart the simulated-playback timer effect.
+
+Meeting detail provides Edit and Delete controls. Editing updates the displayed meeting data; deletion uses a native-dialog confirmation that warns that transcript, summary, topics, and action items will also be removed, then returns successfully deleted meetings to the library.
+
+### Meeting CRUD
+
+`lib/meetings.ts` provides typed frontend clients for creating, updating, and deleting meetings using the existing API contracts. `MeetingFormDialog` is a reusable native-dialog form with title, date/time, duration, and dynamically addable/removable participant inputs. Client-side validation aligns with the backend: trimmed title and participant names, title/name length limits, one to fifty participants, and a non-negative integer duration. Edit requests send only changed fields; when participants change, the complete intended set is sent because the backend replaces participants. Mutation controls disable while requests are in progress and surface accessible success or error feedback. No backend, database, seed-data, or API-contract changes were made.
 
 ### Media Player Placeholder
 
@@ -103,7 +111,7 @@ Transcript search is local to the loaded segments for the current meeting. It pe
 
 ### Frontend data-fetching modules
 
-- `lib/meetings.ts`: `Meeting`/query/response types and `getMeetings`; maps UI filters to API query parameters.
+- `lib/meetings.ts`: `Meeting`/query/response types plus `getMeetings`, `createMeeting`, `updateMeeting`, and `deleteMeeting`; maps UI filters to API query parameters and parses mutation errors.
 - `lib/meetingDetail.ts`: `getMeeting`; maps 404 to `null`.
 - `lib/meetingInsights.ts`: `getMeetingSummary` and `getActionItems`; maps a missing summary (404) to `null`.
 - `lib/transcripts.ts`: `TranscriptSegment` type and `getTranscript`.
@@ -151,18 +159,18 @@ Transcript creation/update validates participant ownership and timestamp ranges.
 - Phase 13 — Transcript ↔ Player Synchronization
 - Phase 14 — Transcript Search & Highlighting
 - Phase 15 — Meeting Detail Summary & Action Items UI
+- Phase 16 — Meeting CRUD UI
 
-Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, and meeting-detail summary/action-items UI. Do not rewrite or reimplement those phases.
+Recent Git milestones include the frontend shell, meetings API connection, library filters, detail page, transcript display, media player placeholder, transcript/player synchronization, transcript search/highlighting, meeting-detail summary/action-items UI, and meeting CRUD UI. Do not rewrite or reimplement those phases.
 
 ## 7. Current status and roadmap
 
-Current status: **Phase 15 — Meeting Detail Summary & Action Items UI is complete.**
+Current status: **Phase 16 — Meeting CRUD UI is complete.**
 
-Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Phase 14 transcript search/highlighting remains intact. Phase 15 was manually tested alongside the existing functionality. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
+Phase 13 remains intact: clicking a transcript row seeks the simulated player, and the active transcript row follows playback and manual seeking. Transcript search/highlighting, summary, and action-item features remain intact. Phase 16 workflows and existing features were manually tested successfully. Frontend lint (`npm.cmd run lint`), the production build (`npm.cmd run build`), and `git diff --check` passed.
 
 Remaining work, in likely order:
 
-- meeting CRUD UI, forms/modals/toasts;
 - frontend polish and any additional responsive/accessibility improvements;
 - final documentation, testing, and deployment.
 
@@ -190,7 +198,7 @@ The frontend normally runs at `http://localhost:3000`; the backend at `http://12
 
 ## 9. Continuation instructions
 
-Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 15, beginning with meeting CRUD UI, forms, modals, and toasts unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; and the read-only summary/action-items sections with independent fetch states. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
+Before changing anything, inspect the current repository, `git log`, and this document. Treat implementation as the source of truth. Continue after Phase 16 with frontend polish and responsive/accessibility improvements unless a different task is requested. Preserve the current separation: `MeetingPlayback` owns shared simulated playback state, `MediaPlayer` is controlled by that state, and no real media integration exists. Preserve the active-segment rule (`start_time <= currentTime < end_time`), including the intentional inactive gaps between segments; local literal-text transcript search/highlighting; read-only summary/action-items sections with independent fetch states; and the meeting CRUD dialog and feedback flows. Keep frontend and backend separation, API versioning, schema/service layering, deterministic seed behavior, and the current completed functionality intact. Verify changes with the relevant frontend/backend checks, modify only files in scope, and do not commit or push unless asked.
 
 ## 10. Development rules and decisions
 
