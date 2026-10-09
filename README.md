@@ -1,46 +1,131 @@
-# Fireflies Clone
+# Fireflies Clone — Meeting Notes & Transcription Platform
 
-Fireflies Clone is a local full-stack meeting intelligence application. It provides a meeting library, meeting details, transcript navigation and search, simulated playback, summaries, action items, and meeting CRUD workflows backed by FastAPI and SQLite.
+A full-stack meeting intelligence application inspired by Fireflies.ai. Browse meetings, search transcripts, synchronize transcript navigation with simulated playback, review meeting summaries and topics, and manage meetings and action items.
 
-## Implemented features
+**Live Demo:** [Fireflies Clone](https://fireflies-clone-orcin.vercel.app/)
+**Backend API:** [API Base URL](https://fireflies-clone-api-trco.onrender.com/api/v1)
+**GitHub Repository:** [fireflies-clone](https://github.com/Prabhsimar2104/fireflies-clone)
 
-- Meeting library with title search, participant and date filters, sorting, loading/error/empty states, and create workflow.
-- Meeting detail pages with metadata, participants, editing, and cascading deletion confirmation.
-- Transcript display with local literal-text search, match navigation, timestamp click-to-seek, and active-segment playback synchronization.
-- Simulated meeting playback with play/pause and seek controls.
-- Read-only summary, ordered topics, and action-item display with independent loading and error states.
-- Responsive and keyboard-accessible UI, including focus restoration after Create, Edit, and Delete dialogs close.
-- Versioned FastAPI endpoints for meetings, transcripts, summaries/topics, and action items.
+## Features
 
-## Technology and architecture
+### Meetings Library
+- Browse meetings with titles, dates, durations, and participants.
+- Search meetings by title and filter by participant or date.
+- Sort meetings by recency.
+- Create, edit, and delete meetings.
+- Handle loading, error, and empty states.
 
-- Frontend: Next.js 16, React 19, TypeScript, CSS Modules.
-- Backend: Python, FastAPI, Pydantic, SQLAlchemy.
-- Database: SQLite.
+### Meeting Details and Transcripts
+- View meeting metadata and participants.
+- Browse transcript segments with speaker labels and timestamps.
+- Search transcript text and navigate between matching results.
+- Select a transcript segment to seek simulated playback to its timestamp.
+- Highlight the active transcript segment as simulated playback advances.
+
+### Summaries and Action Items
+- View seeded meeting summaries and ordered topics.
+- Create, edit, complete, reopen, and delete action items.
+- Assign an optional participant to an action item.
+
+### Backend and Persistence
+- Versioned REST API built with FastAPI.
+- SQLite persistence through SQLAlchemy.
+- Pydantic request and response validation.
+- Relational schema with foreign-key constraints and cascading deletion.
+- Deterministic sample meetings, transcripts, summaries, topics, and action items.
+
+## Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | CSS Modules |
+| Backend | Python, FastAPI, Pydantic |
+| ORM | SQLAlchemy |
+| Database | SQLite |
+| Testing | pytest, FastAPI/Starlette test client |
+
+## Architecture Overview
+
+The frontend and backend are separate applications.
 
 ```text
-Next.js UI
-  -> typed frontend API clients
-  -> FastAPI routers
-  -> Pydantic schemas
-  -> service layer
-  -> SQLAlchemy models/ORM
-  -> SQLite
+Browser
+   |
+   v
+Next.js + React + TypeScript
+   |
+   v
+Typed frontend API clients
+   |
+   v
+FastAPI routers (/api/v1)
+   |
+   v
+Pydantic validation
+   |
+   v
+Service layer
+   |
+   v
+SQLAlchemy ORM and database sessions
+   |
+   v
+SQLite database
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the implemented route groups and entity relationships.
+The frontend renders the meeting library and meeting detail pages. Its API client modules communicate with the backend over HTTP.
+
+The FastAPI application routes requests to the appropriate endpoint. Pydantic schemas validate request data, service modules implement application operations, and SQLAlchemy persists the resulting changes in SQLite.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for further implementation details.
+
+## Database Schema
+
+The database contains seven tables.
+
+| Table | Purpose |
+|---|---|
+| `meetings` | Meeting title, date, duration, and timestamps |
+| `participants` | Unique participant records |
+| `meeting_participants` | Join table connecting meetings and participants |
+| `transcript_segments` | Transcript text, speaker, and start/end timestamps |
+| `summaries` | Summary text associated with a meeting |
+| `summary_topics` | Ordered topics associated with a meeting summary |
+| `action_items` | Tasks, optional assignees, completion state, and timestamps |
+
+### Relationships
+
+- A meeting can have multiple participants, and a participant can attend multiple meetings through `meeting_participants`.
+- A meeting has many transcript segments.
+- A meeting has one summary.
+- A meeting summary has ordered topics.
+- A meeting has many action items.
+- Deleting a meeting cascades to its meeting-owned transcript segments, summary, summary topics, and action items.
+- SQLite foreign-key enforcement is enabled for SQLAlchemy connections.
+
+The schema is implemented in `backend/app/db/models.py`.
 
 ## Prerequisites
 
-- Windows PowerShell.
-- Python 3.14 (the version used by this project).
-- Node.js with npm.
+- Python 3.14, matching the development environment used for this project.
+- Node.js and npm.
+- Windows PowerShell for the commands below.
 
-## Run locally
+## Run Locally
 
-Use two PowerShell terminals from a clean checkout.
+Clone the repository and open its directory:
 
-### Terminal 1: backend
+```powershell
+git clone https://github.com/Prabhsimar2104/fireflies-clone.git
+cd fireflies-clone
+```
+
+Use two PowerShell terminals.
+
+### 1. Start the backend
+
+In the first terminal:
 
 ```powershell
 cd backend
@@ -52,9 +137,13 @@ python -m app.db.seed
 python -m uvicorn app.main:app --reload
 ```
 
-The backend listens on `http://127.0.0.1:8000`.
+The backend runs at `http://127.0.0.1:8000`.
 
-### Terminal 2: frontend
+**Warning:** `python -m app.db.seed` deletes and rebuilds the existing application records. Run it only when initializing or intentionally resetting local demo data. Do not run it against data you want to preserve.
+
+### 2. Start the frontend
+
+In the second terminal, from the repository root:
 
 ```powershell
 cd frontend
@@ -62,101 +151,128 @@ npm.cmd ci
 npm.cmd run dev
 ```
 
-The frontend listens on `http://localhost:3000`.
+The frontend runs at `http://localhost:3000`.
 
-PowerShell on the project’s development machine uses `npm.cmd` instead of the `npm.ps1` shim.
+On the Windows development environment used for this project, `npm.cmd` avoids PowerShell's `npm.ps1` execution-policy issue.
 
-## Environment configuration
+## Environment Variables
 
-Configuration is optional for local development. Copy the examples if you need to override defaults:
+Example configuration files are provided in `backend/.env.example` and `frontend/.env.example`.
 
-```powershell
-Copy-Item backend\.env.example backend\.env
-Copy-Item frontend\.env.example frontend\.env.local
-```
+| Variable | Application | Purpose |
+|---|---|---|
+| `DATABASE_URL` | Backend | Overrides the database connection URL |
+| `CORS_ORIGINS` | Backend | Comma-separated allowed frontend origins |
+| `NEXT_PUBLIC_BACKEND_API_URL` | Frontend | Preferred backend API base URL |
+| `BACKEND_API_URL` | Frontend | Fallback API base URL |
 
-| Variable | Used by | Default / behavior |
-| --- | --- | --- |
-| `DATABASE_URL` | Backend | `sqlite:///.../backend/data/fireflies_clone.db`, based on the backend directory. |
-| `CORS_ORIGINS` | Backend | `http://localhost:3000`; accepts a comma-separated origin list. |
-| `NEXT_PUBLIC_BACKEND_API_URL` | Frontend | First choice for the API base URL. |
-| `BACKEND_API_URL` | Frontend | Used only when `NEXT_PUBLIC_BACKEND_API_URL` is unset. |
-| Neither frontend API variable | Frontend | `http://127.0.0.1:8000`. |
+The frontend resolves the backend URL in this order:
 
-The frontend resolves its API base URL in this exact order:
+1. `NEXT_PUBLIC_BACKEND_API_URL`
+2. `BACKEND_API_URL`
+3. `http://127.0.0.1:8000`
 
-```text
-NEXT_PUBLIC_BACKEND_API_URL -> BACKEND_API_URL -> http://127.0.0.1:8000
-```
+For local development, the backend's default CORS origin is `http://localhost:3000`. The configured origin must match the frontend's browser origin.
 
-## Database setup and seed data
+## Seed Data
 
-`python -m app.db.init_db` creates the SQLite directory and ORM tables when they do not already exist. It does not remove existing data.
+The deterministic development dataset contains:
 
-`python -m app.db.seed` calls database initialization itself, then **deletes and rebuilds all application data** with the deterministic local seed dataset. Run it only when resetting local development data is intended.
+- 5 meetings
+- 8 participants
+- 22 meeting-participant links
+- 75 transcript segments
+- 5 summaries
+- 15 summary topics
+- 15 action items
 
-The seed workflow verifies the rebuilt data and produces 5 meetings, 8 participants, 75 transcript segments, 5 summaries, 15 topics, and 15 action items.
+The seed script replaces the current application records with this dataset. Database initialization alone creates missing tables without intentionally resetting existing application records.
 
-## Validation and frontend commands
+## API Overview
 
-From `frontend/`:
+All versioned application endpoints use the `/api/v1` prefix.
 
-```powershell
-npm.cmd run dev
-npm.cmd run lint
-npm.cmd run build
-npm.cmd run start
-```
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/health` | Versioned API health check |
+| `GET` | `/meetings` | List, search, filter, sort, and paginate meetings |
+| `GET` | `/meetings/{meeting_id}` | Retrieve a meeting |
+| `POST` | `/meetings` | Create a meeting |
+| `PATCH` | `/meetings/{meeting_id}` | Update meeting metadata |
+| `DELETE` | `/meetings/{meeting_id}` | Delete a meeting and its owned data |
+| `GET` | `/meetings/{meeting_id}/transcript` | List transcript segments |
+| `POST` | `/meetings/{meeting_id}/transcript` | Create a transcript segment |
+| `PATCH` | `/meetings/{meeting_id}/transcript/{segment_id}` | Update a transcript segment |
+| `DELETE` | `/meetings/{meeting_id}/transcript/{segment_id}` | Delete a transcript segment |
+| `GET` | `/meetings/{meeting_id}/summary` | Retrieve a meeting summary and topics |
+| `PATCH` | `/meetings/{meeting_id}/summary` | Update a meeting summary |
+| `POST` | `/meetings/{meeting_id}/summary/topics` | Create a summary topic |
+| `PATCH` | `/meetings/{meeting_id}/summary/topics/{topic_id}` | Update a summary topic |
+| `DELETE` | `/meetings/{meeting_id}/summary/topics/{topic_id}` | Delete a summary topic |
+| `GET` | `/meetings/{meeting_id}/action-items` | List action items |
+| `POST` | `/meetings/{meeting_id}/action-items` | Create an action item |
+| `PATCH` | `/meetings/{meeting_id}/action-items/{action_item_id}` | Update an action item |
+| `DELETE` | `/meetings/{meeting_id}/action-items/{action_item_id}` | Delete an action item |
 
-`start` serves a production build after `build` has completed. Repository whitespace can be checked from the repository root:
+The backend also exposes `GET /health` outside the versioned API prefix.
 
-```powershell
-git diff --check
-```
+### Interactive API Documentation
 
-Run backend API tests from the repository root:
+With the backend running locally:
+
+- Health: `http://127.0.0.1:8000/health`
+- Versioned health: `http://127.0.0.1:8000/api/v1/health`
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- OpenAPI schema: `http://127.0.0.1:8000/openapi.json`
+
+## Tests and Quality Checks
+
+Run backend tests from the repository root:
 
 ```powershell
 backend\.venv\Scripts\python.exe -m pytest -v
 ```
 
-The same suite can be run from `backend/` with the virtual environment active:
+Run frontend checks from `frontend/`:
 
 ```powershell
-python -m pytest -v
+npm.cmd run lint
+npm.cmd run build
 ```
 
-## Health and API documentation
+To serve the production frontend build locally after building:
 
-With the backend running:
+```powershell
+npm.cmd run start
+```
 
-- Health check: `http://127.0.0.1:8000/health`
-- Versioned health check: `http://127.0.0.1:8000/api/v1/health`
-- Interactive FastAPI documentation: `http://127.0.0.1:8000/docs`
-- OpenAPI schema: `http://127.0.0.1:8000/openapi.json`
+The backend tests use temporary SQLite databases rather than the local development database.
 
-## API overview
+## Deployment
 
-All application endpoints are versioned under `/api/v1`.
+- **Frontend:** [https://fireflies-clone-orcin.vercel.app/](https://fireflies-clone-orcin.vercel.app/)
+- **Backend API:** [https://fireflies-clone-api-trco.onrender.com/api/v1](https://fireflies-clone-api-trco.onrender.com/api/v1)
+- **Backend health check:** [https://fireflies-clone-api-trco.onrender.com/api/v1/health](https://fireflies-clone-api-trco.onrender.com/api/v1/health)
 
-- `GET /meetings` supports pagination, title search, participant/date filters, and sort order.
-- `GET`, `POST`, `PATCH`, and `DELETE /meetings/{meeting_id}` manage meetings; creation is `POST /meetings`.
-- `GET` and `POST /meetings/{meeting_id}/transcript`, plus `PATCH` and `DELETE` for individual transcript segments.
-- `GET` and `PATCH /meetings/{meeting_id}/summary`; summary topics support `POST`, `PATCH`, and `DELETE` beneath `/summary/topics`.
-- `GET` and `POST /meetings/{meeting_id}/action-items`, plus `PATCH` and `DELETE` for individual action items.
+The deployed frontend uses `NEXT_PUBLIC_BACKEND_API_URL` to reach the deployed backend. The backend's `CORS_ORIGINS` configuration must include the deployed frontend origin.
 
-Use the interactive API documentation for complete request and response schemas.
+**Hosted database limitation:** The demo uses SQLite on Render's ephemeral filesystem. Data changes may be lost when the instance restarts, is replaced, or is redeployed. This deployment is intended as a demonstration, not durable production storage.
 
-## Current limitations
+## Assumptions and Limitations
 
-- Playback is simulated from a meeting duration; there is no real audio or video file playback.
-- There is no authentication, workspace switching, invitations, notifications, profile menu, Search page, or Settings page implementation.
-- There are no uploads, speech-to-text processing, or AI/LLM integrations.
-- Production deployment configuration and deployment instructions are not yet complete.
+- The application uses seeded demo meetings and mock meeting insights.
+- Playback is simulated using the meeting duration; no real audio or video is played.
+- There is no real-time speech-to-text, audio transcription pipeline, or LLM-powered summary generation.
+- Audio/video uploads are not implemented.
+- Real user authentication, workspace switching, team collaboration, and integrations are not implemented.
+- Search and Settings navigation destinations are placeholders rather than complete application pages.
+- The application focuses on post-meeting browsing, transcript interaction, summaries, and task management.
 
-## Project documentation
+Real-time meeting bots, transcription, and integrations are outside the implemented scope of this demo.
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) describes the implemented system structure.
-- [backend/README.md](backend/README.md) covers backend-specific setup and operations.
-- [frontend/README.md](frontend/README.md) covers frontend-specific setup and API configuration.
-- `PROJECT_CONTEXT.md` is the detailed project continuation record.
+## Additional Documentation
+
+- [Architecture](ARCHITECTURE.md)
+- [Backend setup and operations](backend/README.md)
+- [Frontend setup and configuration](frontend/README.md)
+- [Project continuation context](PROJECT_CONTEXT.md)
