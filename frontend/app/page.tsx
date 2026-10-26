@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { MeetingFilters } from "./components/MeetingFilters";
 import { MeetingFormDialog } from "./components/MeetingFormDialog";
 import { MeetingList } from "./components/MeetingList";
-import { createMeeting, getMeetings, type MeetingCreateInput, type MeetingListResponse, type MeetingQuery } from "./lib/meetings";
+import {
+  createMeeting,
+  getMeetings,
+  type MeetingCreateInput,
+  type MeetingListResponse,
+  type MeetingQuery,
+} from "./lib/meetings";
 import styles from "./page.module.css";
 
 const defaultQuery: MeetingQuery = {
@@ -23,15 +29,19 @@ export default function Home() {
   const [requestVersion, setRequestVersion] = useState(0);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const newMeetingButtonRef = useRef<HTMLButtonElement>(null);
+
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
+
     const message = window.sessionStorage.getItem("meeting-feedback");
     window.sessionStorage.removeItem("meeting-feedback");
+
     return message;
   });
 
   useEffect(() => {
     const controller = new AbortController();
+
     const debounceTimer = window.setTimeout(async () => {
       setIsLoading(true);
       setErrorMessage(null);
@@ -41,9 +51,16 @@ export default function Home() {
         setMeetings(result);
       } catch (error) {
         if (controller.signal.aborted) return;
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load meetings.");
+
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to load meetings."
+        );
       } finally {
-        if (!controller.signal.aborted) setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     }, 300);
 
@@ -53,40 +70,121 @@ export default function Home() {
     };
   }, [query, requestVersion]);
 
-  const updateQuery = (updates: Partial<MeetingQuery>) => setQuery((current) => ({ ...current, ...updates }));
-  const hasActiveFilters = Boolean(query.search || query.participant || query.dateFrom || query.dateTo || query.sortOrder === "oldest");
+  const updateQuery = (updates: Partial<MeetingQuery>) => {
+    setQuery((current) => ({
+      ...current,
+      ...updates,
+    }));
+  };
+
+  const hasActiveFilters = Boolean(
+    query.search ||
+      query.participant ||
+      query.dateFrom ||
+      query.dateTo ||
+      query.sortOrder === "oldest"
+  );
+
   const handleCreate = async (payload: MeetingCreateInput) => {
     const meeting = await createMeeting(payload);
+
     setFeedbackMessage(`“${meeting.title}” was created.`);
     setRequestVersion((current) => current + 1);
   };
 
   const handleCreateDialogClose = () => {
     setIsCreateOpen(false);
+
     const opener = newMeetingButtonRef.current;
-    if (opener?.isConnected && !opener.disabled) opener.focus();
+
+    if (opener?.isConnected && !opener.disabled) {
+      opener.focus();
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      setFeedbackMessage(null);
+    };
+  }, []);
 
   return (
     <section className={styles.page}>
       <div className={styles.titleRow}>
         <div>
           <p className={styles.eyebrow}>Workspace</p>
+
           <h1>Meetings</h1>
+
           <p className={styles.description}>
-            {meetings ? (meetings.total === 0 ? "No meetings match your current view." : `${meetings.total} meeting${meetings.total === 1 ? "" : "s"} in your library.`) : "Loading your meetings…"}
+            {meetings
+              ? meetings.total === 0
+                ? "No meetings match your current view."
+                : `${meetings.total} meeting${
+                    meetings.total === 1 ? "" : "s"
+                  } in your library.`
+              : "Loading your meetings…"}
           </p>
         </div>
-        <button className={styles.newMeetingButton} onClick={() => setIsCreateOpen(true)} ref={newMeetingButtonRef} type="button">New meeting</button>
+
+        <button
+          className={styles.newMeetingButton}
+          onClick={() => setIsCreateOpen(true)}
+          ref={newMeetingButtonRef}
+          type="button"
+        >
+          New meeting
+        </button>
       </div>
 
-      {feedbackMessage && <div className={styles.successState} role="status">{feedbackMessage}</div>}
-      <MeetingFilters query={query} onQueryChange={updateQuery} onClear={() => setQuery(defaultQuery)} />
+      {feedbackMessage && (
+        <div className={styles.successState} role="status">
+          {feedbackMessage}
+        </div>
+      )}
 
-      {isLoading && <div className={styles.loadingState} aria-busy="true">Loading meetings…</div>}
-      {!isLoading && errorMessage && <div className={styles.errorState} role="alert"><h2>We couldn’t load your meetings</h2><p>{errorMessage}</p><button type="button" onClick={() => setRequestVersion((current) => current + 1)}>Try again</button></div>}
-      {!isLoading && !errorMessage && meetings && <MeetingList meetings={meetings.items} hasActiveFilters={hasActiveFilters} />}
-      {isCreateOpen && <MeetingFormDialog onClose={handleCreateDialogClose} onSave={handleCreate} />}
+      <MeetingFilters
+        query={query}
+        onQueryChange={updateQuery}
+        onClear={() => setQuery(defaultQuery)}
+      />
+
+      {isLoading && (
+        <div className={styles.loadingState} aria-busy="true">
+          Loading meetings…
+        </div>
+      )}
+
+      {!isLoading && errorMessage && (
+        <div className={styles.errorState} role="alert">
+          <h2>We couldn’t load your meetings</h2>
+
+          <p>{errorMessage}</p>
+
+          <button
+            type="button"
+            onClick={() =>
+              setRequestVersion((current) => current + 1)
+            }
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !errorMessage && meetings && (
+        <MeetingList
+          meetings={meetings.items}
+          hasActiveFilters={hasActiveFilters}
+        />
+      )}
+
+      {isCreateOpen && (
+        <MeetingFormDialog
+          onClose={handleCreateDialogClose}
+          onSave={handleCreate}
+        />
+      )}
     </section>
   );
 }

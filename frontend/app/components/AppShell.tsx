@@ -1,8 +1,16 @@
-import type { ReactNode } from "react";
+"use client";
+
+import {
+  useSyncExternalStore,
+  useState,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import styles from "./AppShell.module.css";
 
 type AppShellProps = { children: ReactNode };
+
+type Theme = "light" | "dark";
 
 const navigationItems = [
   { label: "Meetings", icon: "meetings", href: "/" },
@@ -10,42 +18,206 @@ const navigationItems = [
   { label: "Settings", icon: "settings" },
 ];
 
+function getTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  const savedTheme = window.localStorage.getItem("fireflies-theme");
+
+  if (savedTheme === "light" || savedTheme === "dark") {
+    return savedTheme;
+  }
+
+  return "light";
+}
+
+function subscribeToTheme(callback: () => void) {
+  window.addEventListener("storage", callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function getServerTheme(): Theme {
+  return "light";
+}
+
 function NavIcon({ name }: { name: string }) {
-  if (name === "search") return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5" /><path d="m15 15 4 4" /></svg>;
-  if (name === "settings") return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56V4.62h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.04h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z" /></svg>;
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>;
+  if (name === "search") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="5.5" />
+        <path d="m15 15 4 4" />
+      </svg>
+    );
+  }
+
+  if (name === "settings") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56V4.62h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 01.88-.34l-.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 .34 1.88 1.7 1.7 0 0 0 1.56 1.04h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="14" rx="2" />
+      <path d="M8 3v4M16 3v4M4 10h16" />
+    </svg>
+  );
+}
+
+function ThemeIcon({ theme }: { theme: Theme }) {
+  if (theme === "dark") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.5 15.4A8.5 8.5 0 0 1 8.6 3.5 8.5 8.5 0 1 0 20.5 15.4Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
 }
 
 function AppMark() {
-  return <span className={styles.appMark} aria-hidden="true"><span /><span /><span /></span>;
+  return (
+    <span className={styles.appMark} aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
 }
 
 export function AppShell({ children }: AppShellProps) {
-  return <div className={styles.shell}>
-    <aside className={styles.sidebar}>
-      <div className={styles.brand}><AppMark /><span className={styles.brandName}>fireflies</span></div>
-      <nav className={styles.navigation} aria-label="Primary navigation">
-        {navigationItems.map((item) => item.href ? (
-          <Link aria-current="page" className={`${styles.navItem} ${styles.navItemActive}`} href={item.href} key={item.label}>
-            <NavIcon name={item.icon} /><span>{item.label}</span>
-          </Link>
-        ) : (
-          <button aria-label={`${item.label} is not available yet`} className={`${styles.navItem} ${styles.navItemUnavailable}`} disabled key={item.label} title={`${item.label} is not available yet`} type="button">
-            <NavIcon name={item.icon} /><span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-      <div className={styles.sidebarFooter}><button aria-label="Invite teammates is not available yet" className={styles.inviteButton} disabled title="Invite teammates is not available yet" type="button"><span aria-hidden="true">+</span><span>Invite teammates</span></button></div>
-    </aside>
-    <section className={styles.workspace}>
-      <header className={styles.header}>
-        <button aria-label="Workspace selection is not available yet" className={styles.workspacePicker} disabled title="Workspace selection is not available yet" type="button"><span className={styles.workspaceAvatar}>F</span><span className={styles.workspaceName}>Fireflies workspace</span><span className={styles.chevron} aria-hidden="true">⌄</span></button>
-        <div className={styles.headerActions}>
-          <button aria-label="Notifications are not available yet" className={styles.iconButton} disabled title="Notifications are not available yet" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></button>
-          <button aria-label="Profile menu is not available yet" className={styles.profileButton} disabled title="Profile menu is not available yet" type="button">JD</button>
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getTheme,
+    getServerTheme,
+  );
+
+  const [themeOverride, setThemeOverride] = useState<Theme | null>(null);
+
+  const currentTheme = themeOverride ?? theme;
+
+  function toggleTheme() {
+    const nextTheme: Theme =
+      currentTheme === "light" ? "dark" : "light";
+
+    window.localStorage.setItem("fireflies-theme", nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    setThemeOverride(nextTheme);
+  }
+
+  return (
+    <div className={styles.shell}>
+      <aside className={styles.sidebar}>
+        <div className={styles.brand}>
+          <AppMark />
+          <span className={styles.brandName}>fireflies</span>
         </div>
-      </header>
-      <main className={styles.content}>{children}</main>
-    </section>
-  </div>;
+
+        <nav className={styles.navigation} aria-label="Primary navigation">
+          {navigationItems.map((item) =>
+            item.href ? (
+              <Link
+                aria-current="page"
+                className={`${styles.navItem} ${styles.navItemActive}`}
+                href={item.href}
+                key={item.label}
+              >
+                <NavIcon name={item.icon} />
+                <span>{item.label}</span>
+              </Link>
+            ) : (
+              <button
+                aria-label={`${item.label} is not available yet`}
+                className={`${styles.navItem} ${styles.navItemUnavailable}`}
+                disabled
+                key={item.label}
+                title={`${item.label} is not available yet`}
+                type="button"
+              >
+                <NavIcon name={item.icon} />
+                <span>{item.label}</span>
+              </button>
+            ),
+          )}
+        </nav>
+
+        <div className={styles.sidebarFooter}>
+          <button
+            aria-label="Invite teammates is not available yet"
+            className={styles.inviteButton}
+            disabled
+            title="Invite teammates is not available yet"
+            type="button"
+          >
+            <span aria-hidden="true">+</span>
+            <span>Invite teammates</span>
+          </button>
+        </div>
+      </aside>
+
+      <section className={styles.workspace}>
+        <header className={styles.header}>
+          <div className={styles.workspacePicker}>
+            <span className={styles.workspaceAvatar}>F</span>
+            <span className={styles.workspaceName}>
+              Fireflies workspace
+            </span>
+          </div>
+
+          <div className={styles.headerActions}>
+            <button
+              aria-label={`Switch to ${
+                currentTheme === "light" ? "dark" : "light"
+              } mode`}
+              className={styles.iconButton}
+              onClick={toggleTheme}
+              title={`Switch to ${
+                currentTheme === "light" ? "dark" : "light"
+              } mode`}
+              type="button"
+            >
+              <ThemeIcon theme={currentTheme} />
+            </button>
+
+            <button
+              aria-label="Notifications are not available yet"
+              className={styles.iconButton}
+              disabled
+              title="Notifications are not available yet"
+              type="button"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+              </svg>
+            </button>
+
+            <button
+              aria-label="Profile menu is not available yet"
+              className={styles.profileButton}
+              disabled
+              title="Profile menu is not available yet"
+              type="button"
+            >
+              JD
+            </button>
+          </div>
+        </header>
+
+        <main className={styles.content}>{children}</main>
+      </section>
+    </div>
+  );
 }
